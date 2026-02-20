@@ -74,7 +74,9 @@ def process():
         response = requests.post(api_url, json=payload, headers=headers)
         response.raise_for_status()
         
-        return jsonify(response.json())
+        response_data = response.json()
+        print("Langflow Response:", response_data)
+        return jsonify(response_data)
         
     except requests.exceptions.RequestException as e:
         return jsonify({"error": str(e), "status": "failed"}), 500

@@ -33,17 +33,115 @@
     <p>Delivering population-scale logistics & compliance impact.</p>
 
     <!-- Search Widget Container -->
-    <div class="search-widget">
-        <form id="inputForm" onsubmit="event.preventDefault(); processInput();" style="width: 100%; display: flex;">
-            <div class="input-group">
-                <i class="fas fa-magic input-icon"></i>
-                <input type="text" id="userInput" placeholder="Ask anything about tariffs, HS codes, or logistics..."
-                    required>
+    <div class="search-widget" style="flex-direction: column; gap: 15px; padding: 25px; width: 800px;">
+        <form id="inputForm" onsubmit="event.preventDefault(); processInput();"
+            style="width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+
+            <!-- HS Code -->
+            <div class="input-group-styled">
+                <i class="fas fa-barcode input-icon"></i>
+                <input type="text" id="hsCode" placeholder="HS Code (e.g. 8517.12)" required>
             </div>
-            <button type="submit" class="search-btn">Generate</button>
+
+            <!-- Action (Import/Export) -->
+            <div class="input-group-styled relative-container">
+                <i class="fas fa-exchange-alt input-icon"></i>
+                <input type="text" id="actionType" placeholder="Action (Import/Export)" autocomplete="off">
+                <ul class="custom-options hidden">
+                    <li onclick="selectOption('actionType', 'Import')">Import</li>
+                    <li onclick="selectOption('actionType', 'Export')">Export</li>
+                </ul>
+            </div>
+
+            <!-- Quantity -->
+            <div class="input-group-styled">
+                <i class="fas fa-boxes input-icon"></i>
+                <input type="number" id="quantity" placeholder="Quantity" min="1" required>
+            </div>
+
+            <!-- Product Price -->
+            <div class="input-group-styled">
+                <i class="fas fa-tag input-icon"></i>
+                <input type="number" id="price" placeholder="Price Per Unit (USD)" min="0" step="0.01" required>
+            </div>
+
+            <!-- Origin Country -->
+            <div class="input-group-styled relative-container">
+                <i class="fas fa-plane-departure input-icon"></i>
+                <input type="text" id="originCountry" placeholder="Origin Country" autocomplete="off"
+                    oninput="filterOptions(this)" onfocus="showOptions(this)" onblur="hideOptions(this)">
+                <ul class="custom-options hidden" id="originList">
+                    <li onclick="selectOption('originCountry', 'China')">China</li>
+                    <li onclick="selectOption('originCountry', 'USA')">USA</li>
+                    <li onclick="selectOption('originCountry', 'India')">India</li>
+                    <li onclick="selectOption('originCountry', 'Vietnam')">Vietnam</li>
+                    <li onclick="selectOption('originCountry', 'Germany')">Germany</li>
+                    <li onclick="selectOption('originCountry', 'UAE')">UAE</li>
+                    <li onclick="selectOption('originCountry', 'UK')">UK</li>
+                    <li onclick="selectOption('originCountry', 'Canada')">Canada</li>
+                    <li onclick="selectOption('originCountry', 'Australia')">Australia</li>
+                    <li onclick="selectOption('originCountry', 'Japan')">Japan</li>
+                    <li onclick="selectOption('originCountry', 'South Korea')">South Korea</li>
+                    <li onclick="selectOption('originCountry', 'France')">France</li>
+                    <li onclick="selectOption('originCountry', 'Italy')">Italy</li>
+                    <li onclick="selectOption('originCountry', 'Brazil')">Brazil</li>
+                    <li onclick="selectOption('originCountry', 'Mexico')">Mexico</li>
+                </ul>
+            </div>
+
+            <!-- Destination Country -->
+            <div class="input-group-styled relative-container">
+                <i class="fas fa-plane-arrival input-icon"></i>
+                <input type="text" id="destCountry" placeholder="Destination Country" autocomplete="off"
+                    oninput="filterOptions(this)" onfocus="showOptions(this)" onblur="hideOptions(this)">
+                <ul class="custom-options hidden" id="destList">
+                    <li onclick="selectOption('destCountry', 'China')">China</li>
+                    <li onclick="selectOption('destCountry', 'USA')">USA</li>
+                    <li onclick="selectOption('destCountry', 'India')">India</li>
+                    <li onclick="selectOption('destCountry', 'Vietnam')">Vietnam</li>
+                    <li onclick="selectOption('destCountry', 'Germany')">Germany</li>
+                    <li onclick="selectOption('destCountry', 'UAE')">UAE</li>
+                    <li onclick="selectOption('destCountry', 'UK')">UK</li>
+                    <li onclick="selectOption('destCountry', 'Canada')">Canada</li>
+                    <li onclick="selectOption('destCountry', 'Australia')">Australia</li>
+                    <li onclick="selectOption('destCountry', 'Japan')">Japan</li>
+                    <li onclick="selectOption('destCountry', 'South Korea')">South Korea</li>
+                    <li onclick="selectOption('destCountry', 'France')">France</li>
+                    <li onclick="selectOption('destCountry', 'Italy')">Italy</li>
+                    <li onclick="selectOption('destCountry', 'Brazil')">Brazil</li>
+                    <li onclick="selectOption('destCountry', 'Mexico')">Mexico</li>
+                </ul>
+            </div>
+
+            <!-- Submit Button (Full Width on Mobile, Span 2 on Grid if space) -->
+            <button type="submit" class="search-btn" style="grid-column: 1 / -1; margin-top: 10px;">
+                Generate Analysis
+            </button>
         </form>
     </div>
 </section>
+
+
+
+<!-- Map Visualization (Hidden by default) -->
+<div id="mapContainer" class="map-visualization" style="display: none;">
+    <h3 style="text-align: center; margin-bottom: 10px; color: var(--accent-black);">Logistics Route Preview</h3>
+    <div class="map-wrapper">
+        <!-- New Background Layer for colored map -->
+        <div class="world-map-bg"></div>
+
+        <svg id="routeSvg" width="100%" height="100%" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice">
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#ff0000" />
+                </marker>
+            </defs>
+            <!-- Map Grid/Background (Abstract) -->
+            <rect width="800" height="400" fill="rgba(255,255,255,0.1)" />
+            <!-- Paths and dots will be injected here via JS -->
+        </svg>
+    </div>
+</div>
 
 <!-- Main Results Area (Below Search) -->
 <div id="mainResults" class="results-container" style="display: none; margin-top: 30px;">
