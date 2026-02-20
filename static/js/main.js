@@ -104,13 +104,21 @@ function processInput() {
     const originCountry = document.getElementById('originCountry').value;
     const destCountry = document.getElementById('destCountry').value;
 
-    if (!hsCode || !quantity || !price || !originCountry || !destCountry) {
+    const isImport = actionType.trim().toLowerCase() === 'import';
+
+    if (!hsCode || !actionType || !quantity || !originCountry || !destCountry) {
         alert("Please fill in all fields.");
         return;
     }
 
+    if (!isImport && !price) {
+        alert("Please enter a Price Per Unit for exports.");
+        return;
+    }
+
     // 2. Construct Natural Language Prompt
-    const input = `I want to ${actionType} ${quantity} units of product with HS Code ${hsCode} and unit price ${price} USD from ${originCountry} to ${destCountry}. Please calculate the landed cost, tariffs, and compliance requirements.`;
+    const priceText = isImport ? '' : ` at ${price} USD per unit`;
+    const input = `I want to ${actionType} ${quantity} units of product with ${document.querySelector('.code-tab.active')?.textContent?.trim() || 'HS Code'} ${hsCode}${priceText} from ${originCountry} to ${destCountry}. Please calculate the landed cost, tariffs, and compliance requirements.`;
 
     console.log("Constructed Prompt:", input);
 
@@ -170,33 +178,36 @@ function triggerAdvisorSuggestion(query) {
 }
 
 // --- Map Visualization Logic ---
+// Coordinates calibrated to the actual SVG path bounding boxes (viewBox 0 0 1010 660)
 const countryCoords = {
-    "China": { x: 600, y: 150, code: 'cn' },
-    "USA": { x: 180, y: 140, code: 'us' },
-    "India": { x: 550, y: 180, code: 'in' },
-    "Vietnam": { x: 610, y: 200, code: 'vn' },
-    "Germany": { x: 420, y: 115, code: 'de' },
-    "UAE": { x: 500, y: 170, code: 'ae' },
-    "UK": { x: 400, y: 110, code: 'gb' },
-    "Canada": { x: 180, y: 100, code: 'ca' },
-    "Australia": { x: 680, y: 300, code: 'au' },
-    "Japan": { x: 680, y: 140, code: 'jp' },
-    "South Korea": { x: 660, y: 145, code: 'kr' },
-    "France": { x: 410, y: 125, code: 'fr' },
-    "Italy": { x: 425, y: 130, code: 'it' },
-    "Brazil": { x: 280, y: 280, code: 'br' },
-    "Mexico": { x: 180, y: 180, code: 'mx' }
+    "China": { x: 790, y: 360, code: 'cn' },
+    "USA": { x: 225, y: 275, code: 'us' },
+    "India": { x: 710, y: 405, code: 'in' },
+    "Vietnam": { x: 770, y: 420, code: 'vn' },
+    "Germany": { x: 510, y: 300, code: 'de' },
+    "UAE": { x: 627, y: 390, code: 'ae' },
+    "UK": { x: 465, y: 285, code: 'gb' },
+    "Canada": { x: 220, y: 195, code: 'ca' },
+    "Australia": { x: 855, y: 510, code: 'au' },
+    "Japan": { x: 858, y: 347, code: 'jp' },
+    "South Korea": { x: 836, y: 354, code: 'kr' },
+    "France": { x: 490, y: 318, code: 'fr' },
+    "Italy": { x: 520, y: 330, code: 'it' },
+    "Brazil": { x: 315, y: 475, code: 'br' },
+    "Mexico": { x: 205, y: 375, code: 'mx' }
 };
 
 function drawRoute(origin, destination) {
     const svg = document.getElementById('routeSvg');
     const mapContainer = document.getElementById('mapContainer');
 
-    // Clear previous paths (keep background rect if any, but we use div bg now)
-    // Clear all children to be safe and redraw
-    while (svg.firstChild) {
-        svg.removeChild(svg.firstChild);
-    }
+    // Remove only route-specific elements (pins, path, plane) — preserve #mapLandmasses
+    const toRemove = svg.querySelectorAll('.route-pin, .route-line, .route-plane');
+    toRemove.forEach(el => el.remove());
+    // Also clear any lingering groups that aren't the landmass layer
+    Array.from(svg.children).forEach(child => {
+        if (child.id !== 'mapLandmasses') child.remove();
+    });
 
     // Normalize inputs for lookup
     const originKey = Object.keys(countryCoords).find(k => k.toLowerCase() === origin.trim().toLowerCase());
@@ -215,42 +226,40 @@ function drawRoute(origin, destination) {
     const start = countryCoords[originKey];
     const end = countryCoords[destKey];
 
-    // Helper to create Pin with Flag
+    // Helper to create Pin with Flag (tagged with 'route-pin' class for cleanup)
     function createPin(x, y, countryCode) {
         const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        group.setAttribute("class", "route-pin");
 
         // Pin Drop (Red Marker) with White Stroke for Visibility
         const pinPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        // Simple map marker shape
         pinPath.setAttribute("d", "M12 0c-4.4 0-8 3.6-8 8 0 5.4 8 16 8 16s8-10.6 8-16c0-4.4-3.6-8-8-8z");
         pinPath.setAttribute("fill", "#ff4757");
-        pinPath.setAttribute("stroke", "#ffffff"); // White border
+        pinPath.setAttribute("stroke", "#ffffff");
         pinPath.setAttribute("stroke-width", "2");
-        pinPath.setAttribute("transform", `translate(${x - 12}, ${y - 24}) scale(1.2)`); // Slightly larger pin
-        pinPath.setAttribute("filter", "drop-shadow(0 2px 4px rgba(0,0,0,0.4))"); // Stronger shadow
+        pinPath.setAttribute("transform", `translate(${x - 12}, ${y - 24}) scale(1.2)`);
+        pinPath.setAttribute("filter", "drop-shadow(0 2px 4px rgba(0,0,0,0.4))");
 
         // White circle inside pin
         const innerCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         innerCircle.setAttribute("cx", x);
-        innerCircle.setAttribute("cy", y - 16); // Adjusted for scale
-        innerCircle.setAttribute("r", "4"); // Slightly larger dot
+        innerCircle.setAttribute("cy", y - 16);
+        innerCircle.setAttribute("r", "4");
         innerCircle.setAttribute("fill", "white");
 
-        // Flag Image sitting on top of pin
+        // Flag Image
         const flag = document.createElementNS("http://www.w3.org/2000/svg", "image");
-        flag.setAttribute("href", `https://flagcdn.com/w160/${countryCode}.png`); // High-res flag
-        flag.setAttribute("x", x - 15); // Center flag horizontally above pin
-        flag.setAttribute("y", y - 48); // Sit right above the scaled pin
-        flag.setAttribute("width", "30"); // Larger flag
+        flag.setAttribute("href", `https://flagcdn.com/w160/${countryCode}.png`);
+        flag.setAttribute("x", x - 15);
+        flag.setAttribute("y", y - 48);
+        flag.setAttribute("width", "30");
         flag.setAttribute("height", "20");
-        flag.setAttribute("class", "waving-flag"); // Keep class for static display
-        flag.setAttribute("filter", "drop-shadow(0 2px 3px rgba(0,0,0,0.3))"); // Shadow for flag
-
-        // No Pole (Line removed as requested)
+        flag.setAttribute("class", "waving-flag");
+        flag.setAttribute("filter", "drop-shadow(0 2px 3px rgba(0,0,0,0.3))");
 
         group.appendChild(pinPath);
         group.appendChild(innerCircle);
-        group.appendChild(flag); // Flag effectively "sticks" to top of pin
+        group.appendChild(flag);
         return group;
     }
 
@@ -264,22 +273,22 @@ function drawRoute(origin, destination) {
     const midX = (start.x + end.x) / 2;
     const midY = (start.y + end.y) / 2 - 50;
 
-    // Create Route Path
+    // Create Route Path (tagged for cleanup)
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     const d = `M ${start.x} ${start.y} Q ${midX} ${midY} ${end.x} ${end.y}`;
     path.setAttribute("d", d);
-    path.setAttribute("class", "route-line");
+    path.setAttribute("class", "route-line route-plane");
     svg.appendChild(path);
 
-    // Create Aeroplane Icon Group
+    // Create Aeroplane Icon Group (tagged for cleanup)
     const iconGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    iconGroup.setAttribute("class", "route-plane");
 
     // Aeroplane Shape
     const plane = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    // Simple plane icon (pointing right by default)
     plane.setAttribute("d", "M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z");
-    plane.setAttribute("fill", "#333"); // Dark grey plane for contrast
-    plane.setAttribute("transform", "translate(-12, -12) rotate(90 12 12)"); // Adjust center and rotation
+    plane.setAttribute("fill", "#333");
+    plane.setAttribute("transform", "translate(-12, -12) rotate(90 12 12)");
 
     iconGroup.appendChild(plane);
 
@@ -345,23 +354,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 list.classList.add('hidden');
 
-                // If it's an action or country, we might want to trigger something?
-                // For now just setting value is enough per original logic
+                // If actionType was changed, update the price field state
+                if (input.id === 'actionType') {
+                    updatePriceField(input.value);
+                }
             }
         });
     });
 });
 
-// Remove inline selectOption if we use delegation, but for backward compatibility/simplicity
-// we can keep the function or let the delegation handle it. 
-// The inline onclicks in HTML will still fire click, but mousedown runs first and hides list.
-// To be safe, we can keep selectOption as a no-op or fallback.
+// Fallback for inline onclick handlers
 function selectOption(inputId, value) {
-    // Fallback for inline onclick if mousedown didn't catch it (unlikely)
     const input = document.getElementById(inputId);
     input.value = value;
     const list = input.nextElementSibling;
-    list.classList.add('hidden');
+    if (list) list.classList.add('hidden');
+    // Drive price field state when action type is picked
+    if (inputId === 'actionType') updatePriceField(value);
+}
+
+// Disable/enable price field based on Import vs Export
+function updatePriceField(action) {
+    const priceInput = document.getElementById('price');
+    const priceGroup = document.getElementById('priceGroup');
+    if (!priceInput || !priceGroup) return;
+
+    if (action.trim().toLowerCase() === 'import') {
+        priceInput.disabled = true;
+        priceInput.value = '';
+        priceInput.placeholder = 'N/A for Import';
+        priceGroup.classList.add('field-disabled');
+    } else {
+        priceInput.disabled = false;
+        priceInput.placeholder = 'Price Per Unit (USD)';
+        priceGroup.classList.remove('field-disabled');
+    }
+}
+
+// Toggle HS Code ↔ HTS Code (segmented tab control)
+function switchCodeType(type) {
+    const input = document.getElementById('hsCode');
+    document.querySelectorAll('.code-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.textContent.trim() === type + ' Code');
+    });
+    input.placeholder = type === 'HS'
+        ? 'HS Code (e.g. 8517.12)'
+        : 'HTS Code (e.g. 8517.12.00.00)';
+    input.focus();
 }
 
 // Close dropdowns if clicked outside
