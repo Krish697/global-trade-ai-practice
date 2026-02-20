@@ -1,19 +1,3 @@
-// Mobile Menu Toggle
-function toggleMobileMenu() {
-    const menu = document.getElementById('mobileMenu');
-    menu.classList.toggle('active');
-<<<<<<< HEAD
-=======
-
-    // Disable scrolling when menu is open
-    if (menu.classList.contains('active')) {
-        document.body.style.overflow = 'hidden';
-    } else {
-        document.body.style.overflow = '';
-    }
->>>>>>> 8a7000f (updated)
-}
-
 // ── Navbar smart navigation ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.nav-links a').forEach(link => {

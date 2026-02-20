@@ -5,7 +5,7 @@
 <header>
     <nav class="navbar">
         <a href="#" class="logo">GlobalTrade</a>
-        <div class="nav-links desktop-only">
+        <div class="nav-links">
             <a href="#trade-form">Trade Analysis</a>
             <a href="#hs-lookup">HS Lookup</a>
             <a href="#compliance">Compliance</a>
@@ -14,35 +14,6 @@
                 <i class="fas fa-robot"></i> AI Chat
             </a>
         </div>
-<<<<<<< HEAD
-
-        <!-- Mobile Menu Toggle -->
-        <button class="menu-toggle mobile-only" onclick="toggleMobileMenu()">
-            <i class="fas fa-bars"></i>
-        </button>
-
-        <!-- Mobile Menu Overlay -->
-        <div id="mobileMenu" class="mobile-menu">
-            <div class="mobile-menu-header">
-                <a href="#" class="logo">GlobalTrade</a>
-                <button class="close-menu" onclick="toggleMobileMenu()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="mobile-nav-links">
-                <a href="#trade-form" onclick="toggleMobileMenu()">Trade Analysis</a>
-                <a href="#hs-lookup" onclick="toggleMobileMenu()">HS Lookup</a>
-                <a href="#compliance" onclick="toggleMobileMenu()">Compliance</a>
-                <a href="#routes" onclick="toggleMobileMenu()">Trade Routes</a>
-                <a href="#" onclick="event.preventDefault(); toggleMobileMenu(); openChatPanel();">AI Chat</a>
-            </div>
-        </div>
-=======
-        <!-- Mobile Toggle (Hidden on Desktop) -->
-        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
-            <i class="fas fa-bars"></i>
-        </button>
->>>>>>> 8a7000f (updated)
         <div class="nav-buttons">
             <!-- Google Sign-in button (shown when logged out) -->
             <button id="signInBtn" class="btn-pill btn-glass" onclick="openSignInModal()">
@@ -83,7 +54,7 @@
     <p>Delivering population-scale logistics & compliance impact.</p>
 
     <!-- Search Widget Container -->
-    <div id="trade-form" class="search-widget" style="flex-direction: column; gap: 15px; padding: 25px;">
+    <div id="trade-form" class="search-widget" style="flex-direction: column; gap: 15px; padding: 25px; width: 800px;">
         <form id="inputForm" onsubmit="event.preventDefault(); processInput();"
             style="width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end;">
 
@@ -724,21 +695,5 @@
         );
     });
 </script>
-
-<!-- Mobile Menu Overlay (Outside Navbar flow) -->
-<div id="mobileMenu" class="mobile-menu-overlay">
-    <div class="mobile-menu-content">
-        <button class="close-mobile-menu" onclick="toggleMobileMenu()">
-            <i class="fas fa-times"></i>
-        </button>
-        <div class="mobile-nav-items">
-            <a href="#trade-form" onclick="toggleMobileMenu()">Trade Analysis</a>
-            <a href="#hs-lookup" onclick="toggleMobileMenu()">HS Lookup</a>
-            <a href="#compliance" onclick="toggleMobileMenu()">Compliance</a>
-            <a href="#routes" onclick="toggleMobileMenu()">Trade Routes</a>
-            <a href="#" onclick="event.preventDefault(); toggleMobileMenu(); openChatPanel();">AI Chat</a>
-        </div>
-    </div>
-</div>
 
 {% endblock %}
