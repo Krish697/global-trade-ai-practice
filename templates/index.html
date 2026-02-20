@@ -5,7 +5,7 @@
 <header>
     <nav class="navbar">
         <a href="#" class="logo">GlobalTrade</a>
-        <div class="nav-links">
+        <div class="nav-links" id="navLinks">
             <a href="#trade-form">Trade Analysis</a>
             <a href="#hs-lookup">HS Lookup</a>
             <a href="#compliance">Compliance</a>
@@ -36,6 +36,10 @@
                 onclick="event.preventDefault(); document.getElementById('inputForm').scrollIntoView({behavior:'smooth', block:'center'}); setTimeout(()=>document.getElementById('hsCode').focus(), 400);">Try
                 Free →</a>
         </div>
+        <button class="mobile-menu-btn" aria-label="Toggle mobile menu"
+            onclick="document.getElementById('navLinks').classList.toggle('active')">
+            <i class="fas fa-bars"></i>
+        </button>
     </nav>
 </header>
 
@@ -54,7 +58,8 @@
     <p>Delivering population-scale logistics & compliance impact.</p>
 
     <!-- Search Widget Container -->
-    <div id="trade-form" class="search-widget" style="flex-direction: column; gap: 15px; padding: 25px; width: 800px;">
+    <div id="trade-form" class="search-widget"
+        style="flex-direction: column; gap: 15px; padding: 25px; width: 100%; max-width: 800px;">
         <form id="inputForm" onsubmit="event.preventDefault(); processInput();"
             style="width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end;">
 
